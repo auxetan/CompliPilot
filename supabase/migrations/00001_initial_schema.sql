@@ -61,10 +61,12 @@ CREATE TABLE ai_tools (
   provider text,
   category ai_tool_category DEFAULT 'other',
   description text,
+  url text,
   usage_context text,
   data_types_processed text[] DEFAULT '{}',
   user_count integer,
   is_customer_facing boolean DEFAULT false,
+  automated_decisions boolean DEFAULT false,
   risk_level risk_level DEFAULT 'not_assessed',
   risk_score integer CHECK (risk_score IS NULL OR (risk_score >= 0 AND risk_score <= 100)),
   last_assessed_at timestamptz,
@@ -78,7 +80,7 @@ CREATE TABLE risk_assessments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   ai_tool_id uuid NOT NULL REFERENCES ai_tools(id) ON DELETE CASCADE,
-  regulation regulation_code NOT NULL,
+  regulation_code regulation_code NOT NULL,
   risk_level risk_level NOT NULL,
   risk_score integer CHECK (risk_score >= 0 AND risk_score <= 100),
   findings jsonb DEFAULT '{}',
@@ -161,7 +163,7 @@ CREATE TABLE alerts (
 CREATE TABLE audit_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
   action text NOT NULL,
   entity_type text,
   entity_id uuid,
@@ -271,9 +273,11 @@ CREATE POLICY "Users can view own org alerts"
 CREATE POLICY "Users can update own org alerts"
   ON alerts FOR UPDATE USING (org_id = auth.org_id());
 
--- Audit Logs: org-scoped (read-only for users)
+-- Audit Logs: org-scoped
 CREATE POLICY "Users can view own org audit logs"
   ON audit_logs FOR SELECT USING (org_id = auth.org_id());
+CREATE POLICY "Users can insert audit logs in own org"
+  ON audit_logs FOR INSERT WITH CHECK (org_id = auth.org_id());
 
 -- Invitations: org-scoped
 CREATE POLICY "Users can view own org invitations"
