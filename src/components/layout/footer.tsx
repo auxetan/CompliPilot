@@ -22,9 +22,9 @@ const FOOTER_SECTIONS = [
   {
     title: 'Legal',
     links: [
-      { label: 'Mentions legales', href: '#' },
-      { label: 'Politique de confidentialite', href: '#' },
-      { label: 'CGU', href: '#' },
+      { label: 'Mentions legales', href: '/legal/mentions-legales' },
+      { label: 'Politique de confidentialite', href: '/legal/confidentialite' },
+      { label: 'CGU', href: '/legal/cgu' },
     ],
   },
 ] as const;

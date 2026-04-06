@@ -2,6 +2,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { streamText } from 'ai';
 import { getOrgId, getUser, createServerClient } from '@/lib/supabase/server';
 import { DEFAULT_MODEL } from '@/lib/ai/client';
+import { checkLimit } from '@/lib/stripe/limits';
 import { buildGenerationPrompts } from '@/features/documents/services/generate-document';
 import { generateDocumentSchema } from '@/features/documents/schemas';
 import type {
@@ -21,6 +22,17 @@ export async function POST(request: Request) {
     return new Response('Non authentifie', { status: 401 });
   }
   const user = await getUser();
+
+  // 1b. Plan limit check
+  const limitCheck = await checkLimit(orgId, 'documents');
+  if (!limitCheck.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: `Limite atteinte : ${limitCheck.current}/${limitCheck.limit} documents ce mois. Passez a un plan superieur.`,
+      }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } },
+    );
+  }
 
   // 2. Parse & validate body
   const body = await request.json();

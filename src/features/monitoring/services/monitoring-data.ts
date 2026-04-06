@@ -122,47 +122,54 @@ export async function getStaleTools(orgId: string): Promise<StaleToolItem[]> {
 }
 
 /**
- * Fetches upcoming regulatory deadlines.
+ * Fetches upcoming regulatory deadlines from the regulations table,
+ * with fallback milestones for known EU regulations.
  */
 export async function getUpcomingDeadlines(): Promise<DeadlineItem[]> {
-  // Hard-coded known deadlines (in production, these would come from the regulations table)
+  const supabase = await createServerClient();
   const now = new Date();
-  const knownDeadlines = [
+
+  // Fetch real deadlines from regulations table
+  const { data: regulations } = await supabase
+    .from('regulations')
+    .select('id, code, name, effective_date')
+    .order('effective_date', { ascending: true });
+
+  // Known upcoming milestones (supplementary to DB effective_date)
+  const milestones = [
     {
-      id: 'eu-ai-act-2026',
+      id: 'eu-ai-act-2026-high-risk',
       title: 'EU AI Act — Obligations systemes a haut risque',
       regulation: 'EU AI Act',
       date: '2026-08-02',
     },
     {
-      id: 'eu-ai-act-2025-prohibited',
-      title: 'EU AI Act — Interdictions (pratiques inacceptables)',
+      id: 'eu-ai-act-2027-general',
+      title: 'EU AI Act — Obligations pour tous les systemes IA',
       regulation: 'EU AI Act',
-      date: '2025-02-02',
-    },
-    {
-      id: 'nis2-transposition',
-      title: 'NIS2 — Transposition nationale',
-      regulation: 'NIS2',
-      date: '2024-10-17',
-    },
-    {
-      id: 'dora-application',
-      title: 'DORA — Application',
-      regulation: 'DORA',
-      date: '2025-01-17',
+      date: '2027-08-02',
     },
   ];
 
-  return knownDeadlines
+  // Add regulation effective dates from DB
+  const dbDeadlines = (regulations ?? []).map((r) => ({
+    id: `reg-${r.code}`,
+    title: `${r.name} — Date d'application`,
+    regulation: r.name,
+    date: r.effective_date ?? '',
+  }));
+
+  const allDeadlines = [...dbDeadlines, ...milestones].filter((d) => d.date);
+
+  return allDeadlines
     .map((d) => {
       const target = new Date(d.date);
       const daysUntil = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       let severity: 'info' | 'warning' | 'critical' = 'info';
-      if (daysUntil <= 7) severity = 'critical';
+      if (daysUntil <= 0) severity = 'critical';
       else if (daysUntil <= 30) severity = 'warning';
       return { ...d, daysUntil, severity };
     })
-    .filter((d) => d.daysUntil > -30) // Show past deadlines up to 30 days ago
+    .filter((d) => d.daysUntil > -30)
     .sort((a, b) => a.daysUntil - b.daysUntil);
 }

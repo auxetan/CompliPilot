@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { RegisterForm } from '@/features/auth/components/register-form';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const metadata: Metadata = {
   title: 'Creer un compte',
@@ -7,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function RegisterPage() {
-  return <RegisterForm />;
+  return (
+    <Suspense fallback={<Skeleton className="h-[460px] w-full rounded-lg" />}>
+      <RegisterForm />
+    </Suspense>
+  );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,11 +25,19 @@ import { registerAction } from '../actions/auth-actions';
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteEmail = searchParams.get('email') ?? '';
+  const inviteToken = searchParams.get('invite') ?? '';
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
+    defaultValues: {
+      fullName: '',
+      email: inviteEmail,
+      password: '',
+      confirmPassword: '',
+    },
   });
 
   async function onSubmit(values: RegisterFormValues) {
@@ -39,6 +47,7 @@ export function RegisterForm() {
     formData.set('email', values.email);
     formData.set('password', values.password);
     formData.set('confirmPassword', values.confirmPassword);
+    if (inviteToken) formData.set('inviteToken', inviteToken);
 
     const result = await registerAction(formData);
     setIsLoading(false);
@@ -77,6 +86,8 @@ export function RegisterForm() {
               type="email"
               placeholder="vous@entreprise.com"
               disabled={isLoading}
+              readOnly={!!inviteEmail}
+              className={inviteEmail ? 'bg-muted' : ''}
               {...form.register('email')}
             />
             {form.formState.errors.email && (

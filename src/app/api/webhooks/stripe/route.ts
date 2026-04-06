@@ -35,14 +35,28 @@ export async function POST(request: NextRequest) {
         const planId = session.metadata?.plan_id as PlanId | undefined;
 
         if (orgId && planId && session.subscription) {
+          const subscriptionId =
+            typeof session.subscription === 'string'
+              ? session.subscription
+              : session.subscription.id;
+
+          // Fetch subscription to get period_end
+          let periodEnd: string | null = null;
+          try {
+            const sub = await stripe.subscriptions.retrieve(subscriptionId);
+            if (sub.items.data[0]?.current_period_end) {
+              periodEnd = new Date(sub.items.data[0].current_period_end * 1000).toISOString();
+            }
+          } catch {
+            // Non-blocking — period_end will be set on next subscription.updated event
+          }
+
           await admin
             .from('organizations')
             .update({
               plan: planId,
-              stripe_subscription_id:
-                typeof session.subscription === 'string'
-                  ? session.subscription
-                  : session.subscription.id,
+              stripe_subscription_id: subscriptionId,
+              ...(periodEnd ? { plan_period_end: periodEnd } : {}),
             })
             .eq('id', orgId);
 

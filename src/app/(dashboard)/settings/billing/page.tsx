@@ -8,14 +8,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getOrgId } from '@/lib/supabase/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/stripe/client';
-import { PLANS, PLAN_ORDER, formatPrice } from '@/lib/stripe/config';
+import { PLANS, formatPrice } from '@/lib/stripe/config';
 import { getUsage } from '@/lib/stripe/limits';
-import { PricingCard } from '@/features/billing/components/pricing-card';
 import { UsageMeter } from '@/features/billing/components/usage-meter';
 import { createBillingPortalSession } from '@/features/billing/actions';
-import { BillingIntervalToggle } from './billing-interval-toggle';
+import { BillingPlansWithToggle } from './billing-interval-toggle';
 import { formatDate } from '@/lib/utils';
-import type { PlanId, BillingInterval } from '@/lib/stripe/config';
+import type { PlanId } from '@/lib/stripe/config';
 import type { InvoiceSummary } from '@/features/billing/types';
 import type { Metadata } from 'next';
 
@@ -135,13 +134,7 @@ async function BillingContent() {
       </Card>
 
       {/* Plan comparison */}
-      <div>
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold">Changer de plan</h2>
-          <BillingIntervalToggle />
-        </div>
-        <BillingPlansGrid currentPlan={currentPlan} />
-      </div>
+      <BillingPlansWithToggle currentPlan={currentPlan} />
 
       {/* Invoice history */}
       {invoices.length > 0 && (
@@ -185,29 +178,6 @@ async function BillingContent() {
         </Card>
       )}
     </>
-  );
-}
-
-interface BillingPlansGridProps {
-  currentPlan: PlanId;
-}
-
-function BillingPlansGrid({ currentPlan }: BillingPlansGridProps) {
-  // This is a server component — interval is managed by the client toggle via searchParams
-  // Default to monthly
-  const interval: BillingInterval = 'monthly';
-
-  return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {PLAN_ORDER.map((planId) => (
-        <PricingCard
-          key={planId}
-          plan={PLANS[planId]}
-          currentPlan={currentPlan}
-          interval={interval}
-        />
-      ))}
-    </div>
   );
 }
 

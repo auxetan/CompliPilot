@@ -63,8 +63,18 @@ export async function assessAiTool(
     throw new Error('Réponse IA invalide : pas de JSON trouvé');
   }
 
-  const rawOutput = JSON.parse(jsonMatch[0]);
-  const assessment = assessmentOutputSchema.parse(rawOutput);
+  let rawOutput: unknown;
+  try {
+    rawOutput = JSON.parse(jsonMatch[0]);
+  } catch {
+    throw new Error('Réponse IA invalide : JSON malformé');
+  }
+
+  const validated = assessmentOutputSchema.safeParse(rawOutput);
+  if (!validated.success) {
+    throw new Error(`Structure de réponse IA invalide : ${validated.error.message}`);
+  }
+  const assessment = validated.data;
 
   // 4. Stocker les évaluations par réglementation
   const now = new Date().toISOString();
@@ -76,11 +86,11 @@ export async function assessAiTool(
       (r) => r.regulation === regulation,
     );
 
-    await supabase.from('risk_assessments').insert({
+    const { error: insertError } = await supabase.from('risk_assessments').insert({
       org_id: orgId,
       ai_tool_id: toolId,
       regulation_code: regulation,
-      risk_level: assessment.riskLevel === 'unacceptable' ? 'high' : assessment.riskLevel,
+      risk_level: assessment.riskLevel,
       risk_score: assessment.riskScore,
       findings: regulationFindings,
       recommendations: regulationRecommendations,
@@ -88,6 +98,12 @@ export async function assessAiTool(
       assessed_at: now,
       expires_at: expiresAt,
     });
+
+    if (insertError) {
+      throw new Error(
+        `Erreur lors de l'insertion de l'évaluation ${regulation}: ${insertError.message}`,
+      );
+    }
   }
 
   // 5. Mettre à jour l'outil

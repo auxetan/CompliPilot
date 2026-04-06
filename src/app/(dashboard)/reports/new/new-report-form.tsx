@@ -66,7 +66,7 @@ export function NewReportForm() {
           {/* Report type */}
           <div className="space-y-2">
             <Label htmlFor="report-type">Type de rapport</Label>
-            <Select value={reportType} onValueChange={setReportType}>
+            <Select value={reportType} onValueChange={(v) => v !== null && setReportType(v)}>
               <SelectTrigger id="report-type">
                 <SelectValue placeholder="Selectionnez un type de rapport" />
               </SelectTrigger>

@@ -105,23 +105,42 @@ export async function GET(request: NextRequest) {
       }
 
       // --- 3. Approaching regulatory deadlines ---
-      const knownDeadlines = [
+      const { data: regulations } = await admin
+        .from('regulations')
+        .select('id, code, name, effective_date')
+        .not('effective_date', 'is', null);
+
+      const deadlines = [
+        ...(regulations ?? []).map((r) => ({
+          id: `reg-${r.code}`,
+          title: `${r.name} — Date d'application`,
+          regulation: r.name,
+          date: r.effective_date as string,
+        })),
         {
-          id: 'eu-ai-act-2026',
+          id: 'eu-ai-act-2026-high-risk',
           title: 'EU AI Act — Obligations systemes a haut risque',
           regulation: 'EU AI Act',
           date: '2026-08-02',
         },
+        {
+          id: 'eu-ai-act-2027-general',
+          title: 'EU AI Act — Obligations pour tous les systemes IA',
+          regulation: 'EU AI Act',
+          date: '2027-08-02',
+        },
       ];
 
-      for (const deadline of knownDeadlines) {
+      for (const deadline of deadlines) {
         const target = new Date(deadline.date);
         const daysUntil = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-        // Alert at 90, 30, 7 day milestones
+        if (daysUntil < 0) continue; // Skip past deadlines
+
+        // Alert at 90, 30, 7 day milestones (2-day window to account for cron timing)
         const milestones = [90, 30, 7];
         for (const milestone of milestones) {
-          if (daysUntil <= milestone && daysUntil > milestone - 1) {
+          if (daysUntil <= milestone && daysUntil > milestone - 2) {
             const severity = milestone <= 7 ? 'critical' : milestone <= 30 ? 'warning' : 'info';
             const alertId = await createAlert({
               orgId,

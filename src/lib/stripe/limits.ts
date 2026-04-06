@@ -48,10 +48,10 @@ export async function checkLimit(
     }
 
     case 'documents': {
-      // Count documents created this month
+      // Count documents created this month (UTC for consistency)
       const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
+      startOfMonth.setUTCDate(1);
+      startOfMonth.setUTCHours(0, 0, 0, 0);
       const { count } = await supabase
         .from('compliance_documents')
         .select('id', { count: 'exact', head: true })
