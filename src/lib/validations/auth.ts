@@ -37,6 +37,22 @@ export const magicLinkSchema = z.object({
 
 export type MagicLinkFormValues = z.infer<typeof magicLinkSchema>;
 
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Le mot de passe doit contenir au moins 8 caracteres')
+      .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
+      .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  });
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
 export const onboardingStep1Schema = z.object({
   name: z.string().min(2, "Le nom de l'organisation est requis"),
   industry: z.string().min(1, "L'industrie est requise"),

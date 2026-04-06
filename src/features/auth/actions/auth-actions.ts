@@ -11,6 +11,7 @@ import {
   registerSchema,
   forgotPasswordSchema,
   magicLinkSchema,
+  resetPasswordSchema,
 } from '@/lib/validations/auth';
 
 /**
@@ -152,6 +153,34 @@ export async function forgotPasswordAction(formData: FormData): Promise<AuthActi
 
   // Always return success to avoid email enumeration
   return { success: true };
+}
+
+/**
+ * Server Action — Reset password (update password after clicking reset link).
+ * User must already be authenticated via the recovery link session.
+ */
+export async function resetPasswordAction(formData: FormData): Promise<AuthActionResult> {
+  const raw = {
+    password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
+  };
+
+  const parsed = resetPasswordSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Donnees invalides' };
+  }
+
+  const supabase = await createServerClient();
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
+
+  if (error) {
+    return { success: false, error: 'Erreur lors de la reinitialisation du mot de passe' };
+  }
+
+  return { success: true, redirectTo: '/dashboard' };
 }
 
 /**

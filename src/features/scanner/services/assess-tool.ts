@@ -1,12 +1,10 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { createServerClient } from '@/lib/supabase/server';
+import { getAnthropicClient, DEFAULT_MODEL, MAX_ASSESSMENT_TOKENS } from '@/lib/ai/client';
 import { assessmentOutputSchema, type AssessmentOutput } from '@/features/scanner/schemas';
 import {
   RISK_CLASSIFICATION_SYSTEM_PROMPT,
   buildAssessmentUserPrompt,
 } from '@/lib/ai/prompts/risk-classification';
-
-const anthropic = new Anthropic();
 
 /**
  * Évalue un outil IA via Claude API et stocke les résultats.
@@ -31,9 +29,10 @@ export async function assessAiTool(
   if (tool.org_id !== orgId) throw new Error('Accès non autorisé');
 
   // 2. Appeler Claude API
+  const anthropic = getAnthropicClient();
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 4096,
+    model: DEFAULT_MODEL,
+    max_tokens: MAX_ASSESSMENT_TOKENS,
     system: RISK_CLASSIFICATION_SYSTEM_PROMPT,
     messages: [
       {
