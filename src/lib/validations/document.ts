@@ -1,4 +1,9 @@
 /**
- * Document validation schemas — will be populated in Step 8.
+ * Document validation schemas — shared re-exports from documents feature.
  */
-export {};
+export {
+  generateDocumentSchema,
+  updateDocumentSchema,
+  type GenerateDocumentValues,
+  type UpdateDocumentValues,
+} from '@/features/documents/schemas';
