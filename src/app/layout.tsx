@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ToastProvider } from '@/components/providers/toast-provider';
+import { PostHogProvider } from '@/components/providers/posthog-provider';
 import './globals.css';
 
 const inter = Inter({
@@ -17,6 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://complipilot.com'),
   title: {
     default: 'CompliPilot — AI-Powered Compliance on Autopilot',
     template: '%s | CompliPilot',
@@ -54,8 +56,10 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-background text-foreground antialiased">
         <ThemeProvider>
-          <ToastProvider />
-          {children}
+          <PostHogProvider>
+            <ToastProvider />
+            {children}
+          </PostHogProvider>
         </ThemeProvider>
       </body>
     </html>

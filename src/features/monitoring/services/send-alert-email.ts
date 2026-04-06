@@ -2,7 +2,11 @@ import { Resend } from 'resend';
 import { createServiceRoleClient } from '@/lib/supabase/admin';
 import type { AlertSeverity } from '../types';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 
 interface AlertEmailParams {
   orgId: string;
@@ -46,7 +50,7 @@ export async function sendAlertEmail(params: AlertEmailParams): Promise<void> {
 
   for (const member of members) {
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: 'CompliPilot <alerts@complipilot.io>',
         to: member.email,
         subject: `[CompliPilot] Alerte critique : ${params.title}`,

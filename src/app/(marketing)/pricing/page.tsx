@@ -36,9 +36,61 @@ const PRICING_FAQ = [
   },
 ] as const;
 
+const PRICING_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'CompliPilot',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Starter',
+      price: '199',
+      priceCurrency: 'EUR',
+      description: 'Pour les petites equipes — 5 outils IA, 5 documents/mois',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Growth',
+      price: '499',
+      priceCurrency: 'EUR',
+      description: 'Pour les PME en croissance — 20 outils IA, 50 documents/mois',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Enterprise',
+      price: '1499',
+      priceCurrency: 'EUR',
+      description: 'Pour les grandes organisations — illimite',
+    },
+  ],
+};
+
+const FAQ_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: PRICING_FAQ.map((faq) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer,
+    },
+  })),
+};
+
 export default function PricingPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(PRICING_JSON_LD) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+      />
       <div className="pt-12">
         <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
           Des tarifs transparents

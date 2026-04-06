@@ -9,7 +9,7 @@ import {
   getStaleTools,
   getUpcomingDeadlines,
 } from '@/features/monitoring/services/monitoring-data';
-import { ComplianceTimelineChart } from '@/features/monitoring/components/compliance-timeline-chart';
+import { ComplianceTimelineChartLazy } from '@/features/monitoring/components/compliance-timeline-chart-lazy';
 import { AlertsList } from '@/features/monitoring/components/alerts-list';
 import { DeadlinesList } from '@/features/monitoring/components/deadlines-list';
 import { ExpiringDocsList } from '@/features/monitoring/components/expiring-docs-list';
@@ -62,7 +62,7 @@ async function MonitoringContent() {
   return (
     <>
       {/* Timeline chart — full width */}
-      <ComplianceTimelineChart data={timeline} />
+      <ComplianceTimelineChartLazy data={timeline} />
 
       {/* 3-column grid: Deadlines, Expiring Docs, Stale Tools */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
