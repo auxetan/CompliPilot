@@ -2,7 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
-import { Bell, Moon, Sun, Search, LogOut, User, Settings } from 'lucide-react';
+import { Moon, Sun, Search, LogOut, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -14,17 +14,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MobileNav } from './mobile-nav';
+import { NotificationPopover } from '@/features/monitoring/components/notification-popover';
 import { logoutAction } from '@/features/auth/actions/auth-actions';
+import type { AlertSeverity } from '@/features/monitoring/types';
+
+interface NotificationAlert {
+  id: string;
+  title: string;
+  message: string;
+  severity: AlertSeverity;
+  isRead: boolean;
+  actionUrl: string | null;
+  createdAt: string;
+}
 
 interface TopbarProps {
   userEmail?: string;
   userName?: string;
+  alerts?: NotificationAlert[];
+  unreadCount?: number;
 }
 
 /**
  * Dashboard topbar — mobile hamburger, search shortcut, notifications, theme toggle, user menu.
  */
-export function Topbar({ userEmail, userName }: TopbarProps) {
+export function Topbar({ userEmail, userName, alerts = [], unreadCount = 0 }: TopbarProps) {
   const { setTheme, resolvedTheme } = useTheme();
 
   const initials = userName
@@ -59,20 +73,7 @@ export function Topbar({ userEmail, userName }: TopbarProps) {
         </Tooltip>
 
         {/* Notifications */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Link
-                href="/monitoring"
-                className="inline-flex shrink-0 items-center justify-center rounded-lg px-2.5 h-7 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-                aria-label="Notifications"
-              />
-            }
-          >
-            <Bell className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>Notifications</TooltipContent>
-        </Tooltip>
+        <NotificationPopover alerts={alerts} unreadCount={unreadCount} />
 
         {/* Theme toggle */}
         <Tooltip>
