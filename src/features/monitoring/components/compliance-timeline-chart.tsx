@@ -41,7 +41,9 @@ export function ComplianceTimelineChart({ data }: ComplianceTimelineChartProps) 
   // Filter data purely from the data's max date — avoids impure Date.now() in render
   const filtered = useMemo(() => {
     if (data.length === 0) return data;
-    const maxDate = data[data.length - 1].date;
+    const lastPoint = data[data.length - 1];
+    if (!lastPoint) return data;
+    const maxDate = lastPoint.date;
     const refMs = new Date(maxDate).getTime();
     const cutoff = new Date(refMs - period * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     return data.filter((d) => d.date >= cutoff);
