@@ -3,6 +3,8 @@ import { createServiceRoleClient } from '@/lib/supabase/admin';
 import { createAlert } from '@/features/monitoring/services/alert-service';
 import { sendAlertEmail } from '@/features/monitoring/services/send-alert-email';
 
+export const runtime = 'nodejs';
+
 /**
  * Daily cron job to check regulatory compliance and create alerts.
  * Secured by CRON_SECRET header check.

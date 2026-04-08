@@ -2,7 +2,21 @@ import { Resend } from 'resend';
 import { createServiceRoleClient } from '@/lib/supabase/admin';
 import type { AlertSeverity } from '../types';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendClient: Resend | null = null;
+
+function getResend(): Resend {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY is required to send alert emails.');
+  }
+
+  if (!resendClient) {
+    resendClient = new Resend(apiKey);
+  }
+
+  return resendClient;
+}
 
 interface AlertEmailParams {
   orgId: string;
@@ -20,6 +34,7 @@ export async function sendAlertEmail(params: AlertEmailParams): Promise<void> {
   if (params.severity !== 'critical') return;
 
   const admin = createServiceRoleClient();
+  const resend = getResend();
 
   // Rate limit: max 5 critical emails per day per org
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();

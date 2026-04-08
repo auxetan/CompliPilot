@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { stripe } from '@/lib/stripe/client';
+import { getStripe } from '@/lib/stripe/client';
 import { PLANS } from '@/lib/stripe/config';
 import { createServerClient, getOrgId, getUser } from '@/lib/supabase/server';
 import type { PlanId, BillingInterval } from '@/lib/stripe/config';
@@ -11,6 +11,7 @@ import type { PlanId, BillingInterval } from '@/lib/stripe/config';
  * Redirects the user to the checkout page.
  */
 export async function createCheckoutSession(planId: PlanId, interval: BillingInterval) {
+  const stripe = getStripe();
   const orgId = await getOrgId();
   const user = await getUser();
   if (!orgId || !user) redirect('/login');
@@ -71,6 +72,7 @@ export async function createCheckoutSession(planId: PlanId, interval: BillingInt
  * Redirects the user to the portal.
  */
 export async function createBillingPortalSession() {
+  const stripe = getStripe();
   const orgId = await getOrgId();
   if (!orgId) redirect('/login');
 

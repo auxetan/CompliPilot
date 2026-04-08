@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getOrgId } from '@/lib/supabase/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { stripe } from '@/lib/stripe/client';
+import { getStripe } from '@/lib/stripe/client';
 import { PLANS, PLAN_ORDER, formatPrice } from '@/lib/stripe/config';
 import { getUsage } from '@/lib/stripe/limits';
 import { PricingCard } from '@/features/billing/components/pricing-card';
@@ -40,6 +40,7 @@ function BillingSkeleton() {
 }
 
 async function BillingContent() {
+  const stripe = getStripe();
   const orgId = await getOrgId();
   if (!orgId) redirect('/onboarding');
 

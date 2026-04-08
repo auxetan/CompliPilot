@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe/client';
+import { getStripe } from '@/lib/stripe/client';
 import { createServiceRoleClient } from '@/lib/supabase/admin';
 import { createAlert } from '@/features/monitoring/services/alert-service';
 import type Stripe from 'stripe';
 import type { PlanId } from '@/lib/stripe/config';
+
+export const runtime = 'nodejs';
 
 /**
  * Stripe webhook handler.
  * Verifies the signature and processes subscription lifecycle events.
  */
 export async function POST(request: NextRequest) {
+  const stripe = getStripe();
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
 
